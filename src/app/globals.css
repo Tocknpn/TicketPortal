@@ -1,118 +1,120 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Brand Colors ── */
-  --color-gold-primary: #D4AF37;
-  --color-gold-deep: #735c00;
-  --color-gold-dim: #e9c349;
-  --color-gold-light: #ffe088;
-  --color-gold-container: #554300;
+  /* ── Exact color tokens from design system ── */
+  --color-background:                #f7f9fb;
+  --color-on-background:             #191c1e;
+  --color-surface:                   #f7f9fb;
+  --color-surface-dim:               #d8dadc;
+  --color-surface-bright:            #f7f9fb;
+  --color-surface-tint:              #735c00;
+  --color-surface-variant:           #e0e3e5;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f2f4f6;
+  --color-surface-container:         #eceef0;
+  --color-surface-container-high:    #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-surface:                #191c1e;
+  --color-on-surface-variant:        #4d4635;
+  --color-inverse-surface:           #2d3133;
+  --color-inverse-on-surface:        #eff1f3;
+  --color-outline:                   #7f7663;
+  --color-outline-variant:           #d0c5af;
 
-  /* ── Surface Scale ── */
-  --color-surface: #f7f9fb;
-  --color-surface-dim: #d8dadc;
-  --color-surface-low: #f2f4f6;
-  --color-surface-container: #eceef0;
-  --color-surface-high: #e6e8ea;
-  --color-surface-highest: #e0e3e5;
-  --color-surface-white: #ffffff;
+  --color-primary:                   #735c00;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #d4af37;
+  --color-on-primary-container:      #554300;
+  --color-primary-fixed:             #ffe088;
+  --color-primary-fixed-dim:         #e9c349;
+  --color-on-primary-fixed:          #241a00;
+  --color-on-primary-fixed-variant:  #574500;
+  --color-inverse-primary:           #e9c349;
 
-  /* ── On-Surface Text ── */
-  --color-on-surface: #191c1e;
-  --color-on-surface-muted: #4d4635;
-  --color-inverse-surface: #2d3133;
+  --color-secondary:                 #565e74;
+  --color-on-secondary:              #ffffff;
+  --color-secondary-container:       #dae2fd;
+  --color-on-secondary-container:    #5c647a;
+  --color-secondary-fixed:           #dae2fd;
+  --color-secondary-fixed-dim:       #bec6e0;
+  --color-on-secondary-fixed:        #131b2e;
+  --color-on-secondary-fixed-variant:#3f465c;
 
-  /* ── Outline / Border ── */
-  --color-outline: #7f7663;
-  --color-outline-variant: #d0c5af;
+  --color-tertiary:                  #515f74;
+  --color-on-tertiary:               #ffffff;
+  --color-tertiary-container:        #a5b4cc;
+  --color-on-tertiary-container:     #38465a;
+  --color-tertiary-fixed:            #d5e3fd;
+  --color-tertiary-fixed-dim:        #b9c7e0;
+  --color-on-tertiary-fixed:         #0d1c2f;
+  --color-on-tertiary-fixed-variant: #3a485c;
 
-  /* ── Secondary / Tertiary ── */
-  --color-secondary: #565e74;
-  --color-secondary-container: #dae2fd;
-  --color-tertiary: #515f74;
-  --color-tertiary-container: #a5b4cc;
+  --color-error:                     #ba1a1a;
+  --color-on-error:                  #ffffff;
+  --color-error-container:           #ffdad6;
+  --color-on-error-container:        #93000a;
 
-  /* ── Semantic Status ── */
-  --color-success: #16a34a;
-  --color-success-bg: #dcfce7;
-  --color-warning: #d97706;
-  --color-warning-bg: #fef3c7;
-  --color-danger: #ba1a1a;
-  --color-danger-bg: #ffdad6;
-  --color-info: #0369a1;
-  --color-info-bg: #e0f2fe;
+  /* ── Semantic status colors (extra) ── */
+  --color-success:                   #16a34a;
+  --color-success-bg:                #dcfce7;
+  --color-warning:                   #d97706;
+  --color-warning-bg:                #fef3c7;
 
   /* ── Typography ── */
   --font-sans: 'Inter', system-ui, sans-serif;
 
-  /* ── Spacing ── */
-  --spacing-sidebar: 256px;
-
   /* ── Border Radius ── */
-  --radius-sm: 0.25rem;
-  --radius: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-sm:   0.25rem;
+  --radius:      0.5rem;
+  --radius-lg:   0.5rem;
+  --radius-xl:   0.75rem;
+  --radius-full: 9999px;
 
-  /* ── Shadows ── */
-  --shadow-card: 0 1px 4px 0 rgba(45,49,51,0.05), 0 0 0 1px #E2E8F0;
-  --shadow-overlay: 0 4px 12px 0 rgba(45,49,51,0.10), 0 0 0 1px rgba(45,49,51,0.08);
+  /* ── Sidebar width token ── */
+  --spacing-sidebar: 256px;
 }
 
 /* ── Base ── */
-:root {
-  color-scheme: light;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: var(--color-surface);
-  color: var(--color-on-surface);
-  font-family: var(--font-sans);
+  background-color: #f7f9fb;
+  color: #191c1e;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Tabular numerals for data tables */
-table,
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+/* Material Symbols icon base */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
 }
 
-/* Focus ring using gold */
+/* Tabular numerals for data */
+table { font-variant-numeric: tabular-nums; }
+
+/* Gold focus ring */
 *:focus-visible {
-  outline: 2px solid var(--color-gold-primary);
+  outline: 2px solid #d4af37;
   outline-offset: 2px;
 }
 
-/* Gold input focus glow */
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--color-gold-primary) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-gold-primary) 25%, transparent);
-}
+/* Styled scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f2f4f6; }
+::-webkit-scrollbar-thumb { background: #d0c5af; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #7f7663; }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Soft shadow utility */
+.shadow-soft {
+  box-shadow: 0 4px 6px -1px rgba(19,27,46,0.05), 0 2px 4px -2px rgba(19,27,46,0.05);
 }
-::-webkit-scrollbar-track {
-  background: var(--color-surface-low);
+.shadow-card {
+  box-shadow: 0 1px 4px 0 rgba(45,49,51,0.05), 0 0 0 1px #E2E8F0;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--color-outline-variant);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-outline);
+.shadow-overlay {
+  box-shadow: 0 4px 12px 0 rgba(45,49,51,0.10), 0 0 0 1px rgba(45,49,51,0.08);
 }
