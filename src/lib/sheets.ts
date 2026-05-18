@@ -6,6 +6,29 @@ const MASTER_TAB = "Master_Data";
 const USER_TAB = "User_Database";
 const CONFIG_TAB = "Setting_Config";
 
+const DEV_MODE = !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY;
+
+/* ── Dev seed data (used when Google creds not configured) ── */
+
+const SEED_USERS: AgentUser[] = [
+  { name: "Admin User",   email: "admin@test.com",  password: "admin123",  role: "Admin"    },
+  { name: "Agent One",    email: "agent@test.com",  password: "agent123",  role: "Standard" },
+];
+
+const SEED_CONFIG: AppConfig = {
+  sources:  ["Walk-in", "Phone", "LINE", "Facebook", "WhatsApp"],
+  types:    ["Buy Gold", "Sell Gold", "Exchange", "Inquiry", "Complaint", "Other"],
+  statuses: ["Pending", "In Progress", "Complete"],
+  agents:   ["Admin User", "Agent One"],
+};
+
+const now = new Date().toISOString();
+const SEED_TICKETS: Ticket[] = [
+  { uid: "TK-DEV001", createdAt: now, agentEmail: "admin@test.com",  agentName: "Admin User", source: "Walk-in",  customerName: "Somchai Test",   customerPhone: "0812345678", type: "Buy Gold",   status: "Complete",    details: "Customer buying 1 baht gold.", resolution: "Transaction complete.", startTime: now, endTime: now, handleTime: 15, attachmentUrl: "" },
+  { uid: "TK-DEV002", createdAt: now, agentEmail: "agent@test.com",  agentName: "Agent One",  source: "LINE",     customerName: "Napat Demo",      customerPhone: "0898765432", type: "Inquiry",    status: "Pending",     details: "Inquiry about gold price today.", resolution: "", startTime: now, endTime: null, handleTime: 0, attachmentUrl: "" },
+  { uid: "TK-DEV003", createdAt: now, agentEmail: "admin@test.com",  agentName: "Admin User", source: "Phone",    customerName: "Lalita Sample",   customerPhone: "0867890123", type: "Sell Gold",  status: "In Progress", details: "Selling 2 baht gold.", resolution: "", startTime: now, endTime: null, handleTime: 0, attachmentUrl: "" },
+];
+
 function getAuth() {
   return new google.auth.GoogleAuth({
     credentials: {
@@ -46,6 +69,7 @@ function rowToTicket(row: string[]): Ticket {
 /* ── Config ── */
 
 export async function getAppConfig(): Promise<AppConfig> {
+  if (DEV_MODE) return SEED_CONFIG;
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -64,6 +88,7 @@ export async function getAppConfig(): Promise<AppConfig> {
 
 
 export async function getAllUsers(): Promise<AgentUser[]> {
+  if (DEV_MODE) return SEED_USERS;
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -76,6 +101,7 @@ export async function getAllUsers(): Promise<AgentUser[]> {
 /* ── Tickets ── */
 
 export async function getRecentTickets(days = 30): Promise<Ticket[]> {
+  if (DEV_MODE) return SEED_TICKETS;
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -100,6 +126,17 @@ export async function searchTickets(filters: {
   type?: string;
   status?: string;
 }): Promise<Ticket[]> {
+  if (DEV_MODE) {
+    const q = filters.query?.toLowerCase();
+    return SEED_TICKETS.filter((t) => {
+      if (q && !t.uid.toLowerCase().includes(q) && !t.customerName.toLowerCase().includes(q) && !t.customerPhone.includes(q)) return false;
+      if (filters.agent && t.agentName !== filters.agent) return false;
+      if (filters.source && t.source !== filters.source) return false;
+      if (filters.type && t.type !== filters.type) return false;
+      if (filters.status && t.status !== filters.status) return false;
+      return true;
+    });
+  }
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -133,6 +170,7 @@ export async function searchTickets(filters: {
 }
 
 export async function getTicketByUid(uid: string): Promise<Ticket | null> {
+  if (DEV_MODE) return SEED_TICKETS.find((t) => t.uid === uid) ?? null;
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -144,6 +182,11 @@ export async function getTicketByUid(uid: string): Promise<Ticket | null> {
 }
 
 export async function createTicket(data: Omit<Ticket, "uid" | "createdAt" | "handleTime">): Promise<string> {
+  if (DEV_MODE) {
+    const uid = "TK-DEV" + Date.now();
+    SEED_TICKETS.unshift({ ...data, uid, createdAt: new Date().toISOString(), handleTime: 0, endTime: data.endTime ?? null });
+    return uid;
+  }
   const sheets = await getSheets();
   const now = new Date();
   const uid = "TK-" + now.getTime();
@@ -168,6 +211,11 @@ export async function createTicket(data: Omit<Ticket, "uid" | "createdAt" | "han
 }
 
 export async function updateTicket(uid: string, data: Partial<Ticket>): Promise<void> {
+  if (DEV_MODE) {
+    const i = SEED_TICKETS.findIndex((t) => t.uid === uid);
+    if (i !== -1) SEED_TICKETS[i] = { ...SEED_TICKETS[i], ...data };
+    return;
+  }
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -198,6 +246,11 @@ export async function updateTicket(uid: string, data: Partial<Ticket>): Promise<
 }
 
 export async function deleteTicket(uid: string): Promise<void> {
+  if (DEV_MODE) {
+    const i = SEED_TICKETS.findIndex((t) => t.uid === uid);
+    if (i !== -1) SEED_TICKETS.splice(i, 1);
+    return;
+  }
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -233,6 +286,9 @@ export async function getReportData(filters: {
   sources?: string[];
   types?: string[];
 }): Promise<TicketSummaryRow[]> {
+  if (DEV_MODE) {
+    return SEED_TICKETS.map((t) => ({ agent: t.agentName, source: t.source, type: t.type, status: t.status, handleTime: t.handleTime }));
+  }
   const sheets = await getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
