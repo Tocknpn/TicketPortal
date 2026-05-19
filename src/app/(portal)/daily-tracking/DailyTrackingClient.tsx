@@ -237,7 +237,7 @@ export default function DailyTrackingClient() {
       </div>
 
       {/* Session activity flyout */}
-      <div className="fixed right-8 bottom-8 w-60 bg-inverse-surface text-inverse-on-surface p-4 rounded-xl shadow-overlay z-30">
+      <div className="fixed left-8 bottom-8 w-60 bg-inverse-surface text-inverse-on-surface p-4 rounded-xl shadow-overlay z-30">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[14px] font-bold">Session Activity</span>
           <span className="material-symbols-outlined text-primary-fixed-dim text-[20px]">speed</span>
