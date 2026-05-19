@@ -3,11 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Ticket, AppConfig } from "@/lib/types";
-import StatusBadge from "@/components/ui/StatusBadge";
 import ChannelIcon from "@/components/ui/ChannelIcon";
 import Avatar from "@/components/ui/Avatar";
 import NewTicketModal from "./NewTicketModal";
-import { formatDateTime, nowLocalISO } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 
 const ROWS_PER_PAGE = 50;
 
@@ -23,6 +22,8 @@ export default function DailyTrackingClient() {
   const [activeTab, setActiveTab] = useState<"all"|"mine"|"priority">("all");
   const [page, setPage]           = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [sortCol, setSortCol]     = useState<keyof Ticket>("startTime");
+  const [sortDir, setSortDir]     = useState<"asc"|"desc">("desc");
 
   const agentEmail = session?.user?.email ?? "";
   const isAdmin    = (session?.user as { role?: string })?.role === "Admin";
@@ -62,16 +63,20 @@ export default function DailyTrackingClient() {
     return matchSearch && matchAgent && matchSource && matchStatus && matchType && matchFrom && matchTo && matchTab;
   });
 
-  const total    = filtered.length;
-  const complete = filtered.filter((t) => t.status === "Complete").length;
+  const sorted = [...filtered].sort((a, b) => {
+    const av = a[sortCol] ?? "";
+    const bv = b[sortCol] ?? "";
+    const cmp = String(av).localeCompare(String(bv), undefined, { numeric: true });
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const total    = sorted.length;
+  const complete = sorted.filter((t) => t.status === "Complete").length;
   const pct      = total > 0 ? Math.round((complete / total) * 100) : 0;
   const pending  = total - complete;
 
   const pages   = Math.max(1, Math.ceil(total / ROWS_PER_PAGE));
-  const sliced  = filtered.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
-
-  const circleR  = 20;
-  const circum   = 2 * Math.PI * circleR;
+  const sliced  = sorted.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
 
   return (
     <div>
@@ -105,11 +110,6 @@ export default function DailyTrackingClient() {
             ))}
           </div>
 
-          {/* Advanced filters toggle */}
-          <button className="flex items-center gap-2 text-on-surface-variant hover:text-primary text-[14px] font-semibold transition-colors">
-            <span className="material-symbols-outlined text-[18px]">filter_list</span>
-            Advanced Filters
-          </button>
         </div>
 
         <button
@@ -117,7 +117,7 @@ export default function DailyTrackingClient() {
           className="bg-[#22c55e] text-white text-[14px] font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 shadow-soft hover:brightness-95 transition-all"
         >
           <span className="material-symbols-outlined">add</span>
-          + New Ticket
+          New Ticket
         </button>
       </div>
 
@@ -165,17 +165,32 @@ export default function DailyTrackingClient() {
           <table className="w-full text-left border-collapse">
             <thead className="bg-surface-container-low">
               <tr>
-                {["TICKET ID","CUSTOMER NAME","CHANNEL","ASSIGNED AGENT","START TIME"].map((h) => (
-                  <th key={h} className="px-6 py-4 text-[12px] font-medium text-on-surface-variant uppercase tracking-wider">{h}</th>
+                {([
+                  { label: "TICKET ID",      col: "uid"          },
+                  { label: "CUSTOMER NAME",  col: "customerName" },
+                  { label: "CHANNEL",        col: "source"       },
+                  { label: "ASSIGNED AGENT", col: "agentName"    },
+                  { label: "START TIME",     col: "startTime"    },
+                ] as { label: string; col: keyof Ticket }[]).map(({ label, col }) => (
+                  <th
+                    key={col}
+                    onClick={() => { if (sortCol === col) { setSortDir(d => d === "asc" ? "desc" : "asc"); } else { setSortCol(col); setSortDir("asc"); } setPage(1); }}
+                    className="px-6 py-4 text-[12px] font-medium text-on-surface-variant uppercase tracking-wider cursor-pointer select-none hover:text-primary transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {label}
+                      {sortCol === col
+                        ? <span className="material-symbols-outlined text-[14px] text-primary">{sortDir === "asc" ? "arrow_upward" : "arrow_downward"}</span>
+                        : <span className="material-symbols-outlined text-[14px] opacity-30">swap_vert</span>}
+                    </span>
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
               {sliced.length === 0 ? (
                 <tr><td colSpan={5} className="text-center py-16 text-on-surface-variant text-[14px]">No tickets found.</td></tr>
-              ) : sliced.map((t) => {
-                const canEdit = isAdmin || t.agentEmail === agentEmail;
-                return (
+              ) : sliced.map((t) => (
                   <tr
                     key={t.uid}
                     className="hover:bg-surface-container transition-colors cursor-pointer"
@@ -204,8 +219,7 @@ export default function DailyTrackingClient() {
                       {t.startTime ? formatDateTime(t.startTime) : "—"}
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         )}
@@ -234,19 +248,6 @@ export default function DailyTrackingClient() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Session activity flyout */}
-      <div className="fixed left-8 bottom-8 w-60 bg-inverse-surface text-inverse-on-surface p-4 rounded-xl shadow-overlay z-30">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[14px] font-bold">Session Activity</span>
-          <span className="material-symbols-outlined text-primary-fixed-dim text-[20px]">speed</span>
-        </div>
-        <div className="space-y-2.5 text-[13px]">
-          <div className="flex justify-between"><span className="opacity-80">Avg Response Time</span><span className="font-medium">—</span></div>
-          <div className="w-full h-1.5 bg-white/10 rounded-full"><div className="bg-primary-fixed-dim h-full w-2/3 rounded-full" /></div>
-          <div className="flex justify-between mt-1"><span className="opacity-80">Agent Load</span><span className="font-medium">{isAdmin ? "Admin" : "Optimal"}</span></div>
-        </div>
       </div>
 
       {/* New Ticket Modal */}
